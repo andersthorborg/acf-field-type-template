@@ -194,8 +194,16 @@ class acf_field_multisite_page_link extends acf_field {
     // set choices
     if( !empty($field['value']) ) {
 
+      $value = $field['value'];
+
+      // Handle regular link fields
+      if ( is_numeric( $value ) ) {
+        $value = $this->get_value_from_id( $value );
+      } else {
+        $value = $this->decode_value( $value );
+      }
+
       // append to choices
-      $value = $this->decode_value( $field['value'] );
       $field['choices'][ $field['value'] ] = $this->get_post_title( get_post( $value['id'] ), $field );
 
     }
@@ -268,32 +276,6 @@ class acf_field_multisite_page_link extends acf_field {
 
     }
 
-
-    // format
-    if( is_array($value) ) {
-
-      // array
-      foreach( $value as $k => $v ){
-
-        // object?
-        if( is_object($v) && isset($v->ID) )
-        {
-          $value[ $k ] = $v->ID;
-        }
-      }
-
-
-      // save value as strings, so we can clearly search for them in SQL LIKE statements
-      $value = array_map('strval', $value);
-
-    } elseif( is_object($value) && isset($value->ID) ) {
-
-      // object
-      $value = $value->ID;
-
-    }
-
-
     // return
     return $value;
 
@@ -331,6 +313,10 @@ class acf_field_multisite_page_link extends acf_field {
 
       return $value;
 
+    }
+
+    if ( is_numeric($value) ) {
+      return get_permalink( $value );
     }
 
 
@@ -576,15 +562,14 @@ class acf_field_multisite_page_link extends acf_field {
 
   function get_post_result( $id, $post ) {
 
-    // vars
-    $result = array(
-      'id'  => $this->encode_value( array(
-        'site'  => get_current_blog_id(),
-        'id'    => $id
-      )),
-      'text'  => $post->post_title
-    );
 
+    // vars
+    $text = $post->post_title;
+
+    $result = array(
+      'id'  => $this->encode_value( $this->get_value_from_id( $id ) ),
+      'text'  => $text
+    );
 
     // look for parent
     $search = '| ' . __('Parent', 'acf') . ':';
@@ -625,6 +610,19 @@ class acf_field_multisite_page_link extends acf_field {
 
   function decode_value( $value ) {
     return json_decode( html_entity_decode( $value ), true );
+  }
+
+  /**
+   *
+   * Generates value from post id and current blog
+   *
+   */
+
+  function get_value_from_id( $id ) {
+    return array(
+      'site'  => get_current_blog_id(),
+      'id'    => $id
+    );
   }
 
 
