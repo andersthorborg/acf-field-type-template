@@ -664,6 +664,8 @@ class acf_field_multisite_page_link extends acf_field {
 
   }
 
+}
+
 
 // initialize
 new acf_field_multisite_page_link( $this->settings );
