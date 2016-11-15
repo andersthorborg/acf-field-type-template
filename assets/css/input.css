@@ -1,9 +1,9 @@
-.acf-multisite-page-link-post-type {
+.select2-results .acf-multisite-page-link-post-type {
   float: right;
-  display: inline-block;
-  padding: 0px 3px;
-  background-color: #555;
-  font-size: 9px;
+  color: #888;
+}
+
+.select2-results .select2-highlighted .acf-multisite-page-link-post-type {
   color: #fff;
 }
 
