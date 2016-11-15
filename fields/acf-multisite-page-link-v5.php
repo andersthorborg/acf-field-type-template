@@ -44,7 +44,7 @@ class acf_field_multisite_page_link extends acf_field {
 		*  category (string) basic | content | choice | relational | jquery | layout | CUSTOM GROUP NAME
 		*/
 
-		$this->category = 'basic';
+		$this->category = 'relational';
 
 
 		/*
