@@ -1,0 +1,20 @@
+.acf-multisite-page-link-post-type {
+  float: right;
+  display: inline-block;
+  padding: 0px 3px;
+  background-color: #555;
+  font-size: 9px;
+  color: #fff;
+}
+
+.select2-chosen .acf-multisite-page-link-post-type {
+  display: none;
+}
+
+.select2-results .select2-result-unselectable  {
+  display: none;
+}
+
+.select2-results .select2-result-unselectable.select2-result-with-children {
+  display: block;
+}
