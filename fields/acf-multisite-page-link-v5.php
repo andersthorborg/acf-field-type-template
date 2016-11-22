@@ -53,6 +53,7 @@ class acf_field_multisite_page_link extends acf_field {
 
 		$this->defaults = array(
       'post_type'     => array(),
+      'sites'         => array(),
       'taxonomy'      => array(),
       'allow_null'    => 0,
       'multiple'      => 0,
@@ -128,20 +129,24 @@ class acf_field_multisite_page_link extends acf_field {
       'placeholder' => __("All post types",'acf'),
     ));
 
-
-    // taxonomy
+    // site
+    $sites = [];
+    foreach ( get_sites() as $site ) {
+      $id = $site->blog_id;
+      $details = get_blog_details( $id );
+      $sites[$id] = $details->blogname;
+    }
     acf_render_field_setting( $field, array(
-      'label'     => __('Filter by Taxonomy','acf'),
+      'label'     => __('Select from these sites','acf'),
       'instructions'  => '',
       'type'      => 'select',
-      'name'      => 'taxonomy',
-      'choices'   => acf_get_taxonomy_terms(),
+      'name'      => 'sites',
+      'choices'   => $sites,
       'multiple'    => 1,
       'ui'      => 1,
       'allow_null'  => 1,
-      'placeholder' => __("All taxonomies",'acf'),
+      'placeholder' => __("All sites",'acf'),
     ));
-
 
     // allow_null
     acf_render_field_setting( $field, array(
@@ -421,83 +426,27 @@ class acf_field_multisite_page_link extends acf_field {
 
     }
 
-    // create tax queries
-    if( !empty($field['taxonomy']) ) {
-
-      // append to $args
-      $args['tax_query'] = array();
-
-
-      // decode terms
-      $taxonomies = acf_decode_taxonomy_terms( $field['taxonomy'] );
-
-
-      // now create the tax queries
-      foreach( $taxonomies as $taxonomy => $terms ) {
-
-        $args['tax_query'][] = array(
-          'taxonomy'  => $taxonomy,
-          'field'   => 'slug',
-          'terms'   => $terms,
-        );
-
-      }
-    }
-
-
     // filters
     $args = apply_filters('acf/fields/multisite_page_link/query', $args, $field, $options['post_id']);
     $args = apply_filters('acf/fields/multisite_page_link/query/name=' . $field['name'], $args, $field, $options['post_id'] );
     $args = apply_filters('acf/fields/multisite_page_link/query/key=' . $field['key'], $args, $field, $options['post_id'] );
 
-    // add archives to $results
-    if( $field['allow_archives'] && $args['paged'] == 1 ) {
-
-      $archives = array();
-      $archives[] = array(
-        'id'  => home_url(),
-        'text'  => home_url()
-      );
-
-      foreach( $args['post_type'] as $post_type ) {
-
-        // vars
-        $archive_link = get_post_type_archive_link( $post_type );
-
-
-        // bail ealry if no link
-        if( !$archive_link ) continue;
-
-
-        // bail early if no search match
-        if( $is_search && stripos($archive_link, $s) === false ) continue;
-
-
-        // append
-        $archives[] = array(
-          'id'  => $archive_link,
-          'text'  => $archive_link
-        );
-
-      }
-
-      // append
-      $results[] = array(
-        'text'    => __('Archives', 'acf'),
-        'children'  => $archives
-      );
-
-    }
 
 
     // get posts grouped by site
     $groups = [];
-    $sites = get_sites();
+    $sites = $field['sites'];
+
+    if ( empty( $sites ) ) {
+      foreach ( get_sites() as $site ) {
+        $sites[] = $site->blog_id;
+      }
+    }
 
     foreach ( $sites as $site ) {
-      switch_to_blog( $site->blog_id );
+      switch_to_blog( $site );
       $posts = get_posts( $args );
-      $groups[$site->blog_id] = $posts;
+      $groups[$site] = $posts;
     }
 
     restore_current_blog();
