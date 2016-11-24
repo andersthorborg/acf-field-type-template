@@ -209,8 +209,10 @@ class acf_field_multisite_page_link extends acf_field {
       }
 
       // append to choices
+      $current_blog = get_current_blog_id();
+      switch_to_blog( $value['site'] );
       $field['choices'][ $field['value'] ] = $this->get_post_title( get_post( $value['id'] ), $field );
-
+      switch_to_blog($current_blog);
     }
 
 
@@ -443,13 +445,15 @@ class acf_field_multisite_page_link extends acf_field {
       }
     }
 
+    $current_blog = get_current_blog_id();
+
     foreach ( $sites as $site ) {
       switch_to_blog( $site );
       $posts = get_posts( $args );
       $groups[$site] = $posts;
     }
 
-    restore_current_blog();
+    switch_to_blog( $current_blog );
 
     // loop
     if( !empty($groups) ) {
@@ -466,6 +470,7 @@ class acf_field_multisite_page_link extends acf_field {
         );
 
         // Switch to target blog
+        $current_blog = get_current_blog_id();
         switch_to_blog( $site_id );
 
 
@@ -477,6 +482,7 @@ class acf_field_multisite_page_link extends acf_field {
         }
 
         restore_current_blog();
+        switch_to_blog( $current_blog );
 
         // append to $results
         $results[] = $data;
